@@ -30,7 +30,7 @@ Annual NLCD supports the exact requested years. The project will use all three l
 
 ## What is complete for Prompt 2
 
-The commented [population cleaning script](scripts/1_clean_population.R) runs on the included Census data and produces a six-row county-year table. It uses `filter()` to select the observations, `mutate()` to parse counts and calculate changes, and `group_by()` with `summarise()` to compare each county across time. It preserves leading zeros in GEOIDs, joins the official county identifiers, and checks missing values, duplicates, and year coverage.
+The commented [population cleaning script](scripts/1_clean_population.py) runs on the included Census data and produces a six-row county-year table. It uses pandas to filter observations, convert counts to numbers, calculate new columns, and summarize each county with `groupby()` and `agg()`. It preserves leading zeros in GEOIDs, joins the official county identifiers with `merge()`, and checks missing values, duplicates, and year coverage.
 
 The population summaries are reproducible outputs. **Land-cover areas, conversion totals, and developed land per resident have not yet been calculated.** The next stage is described in the [land-cover analysis plan](docs/land_cover_analysis_plan.md).
 
@@ -56,7 +56,7 @@ raw_data/
   boundaries/     Two-county TIGER subset and provenance
   land_cover/     Instructions for the three Annual NLCD layers
 clean_data/       Cleaned county population table
-scripts/          Download helpers and commented R preprocessing
+scripts/          Download helpers and commented Python preprocessing
 results/          Population growth tables and cleaning checks
 figures/          Reserved for project charts and maps
 docs/             Data dictionary, spatial analysis plan, discussion draft
@@ -64,23 +64,18 @@ docs/             Data dictionary, spatial analysis plan, discussion draft
 
 ## Run the population cleaning
 
-Use R 4.1 or later and dplyr 1.1 or later. Install the two packages once in R:
-
-```r
-install.packages(c("dplyr", "readr"))
-```
-
-Then, from the repository folder:
+Use Python 3.10 or later. From the repository folder, install the packages and run the script:
 
 ```sh
-Rscript scripts/1_clean_population.R
+python -m pip install -r requirements.txt
+python scripts/1_clean_population.py
 ```
 
-In RStudio, open [the project file](Yale_Environmental_Science_Capstone2.Rproj) and run `source("scripts/1_clean_population.R")`. The included source snapshots make cleaning possible without an API key or network connection after package installation. Rerunning replaces the generated population tables and report, while leaving the source files unchanged.
+The included source snapshots make cleaning possible without an API key or network connection after package installation. Rerunning replaces the generated population tables and report, while leaving the source files unchanged.
 
-Validation used R 4.6.0 through WebR, dplyr 1.2.1, and readr 2.2.0. Checks covered the six source counts, missing observations, duplicate handling, and consistency after shuffling input rows.
+Validation used Python 3.13.1 and pandas 2.2.3. Checks covered the six source counts, missing observations, duplicate handling, and consistency after shuffling input rows.
 
-Optional source-refresh helpers use Python. `python scripts/0_download_population.py` needs only the standard library. To recreate the boundary subset, first install `requirements.txt`, then run `python scripts/0_prepare_boundaries.py`. These helpers need internet access. The national TIGER archive is excluded from Git; the small two-county subset is included.
+Optional source-refresh helpers also use Python. `python scripts/0_download_population.py` needs only the standard library. `python scripts/0_prepare_boundaries.py` recreates the boundary subset using GeoPandas and pyogrio, included in `requirements.txt`. These helpers need internet access. The national TIGER archive is excluded from Git; the small two-county subset is included.
 
 ## Expected outputs and next steps
 

@@ -4,9 +4,6 @@ __pycache__/
 .ipynb_checkpoints/
 .DS_Store
 Thumbs.db
-.Rhistory
-.RData
-.Rproj.user/
 raw_data/boundaries/*.zip
 raw_data/land_cover/*.tif
 raw_data/land_cover/*.tif.*

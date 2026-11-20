@@ -2,7 +2,11 @@
 
 The population preprocessing and county boundary subset are available.
 Land-cover rasters have not been acquired, and no conversion results are
-claimed here. The next stage will use R packages `terra`, `sf`, and `dplyr`.
+claimed here. The next stage will use Python: Rasterio for raster data,
+GeoPandas for county boundaries, NumPy for cell comparisons, pandas for
+summary tables, and Matplotlib for charts and maps. Install those additional
+analysis packages when beginning the raster work; the current requirements
+cover population cleaning and boundary preparation.
 
 Use **Annual NLCD Collection 1.2** land cover for exactly 2000, 2010, and
 2020. Legacy NLCD years such as 2001 and 2011 are not substitutes.
@@ -31,20 +35,35 @@ within common coverage as the denominator.
 Endpoint comparisons cannot reveal temporary conversions that reverse
 between observation years.
 
-The following is an **illustrative, unexecuted** calculation on future
-transition counts. `pixels` must include unchanged and changed cells.
+The following is an **illustrative calculation** for future transition counts;
+it has not been run on the project's land-cover rasters. `pixels` must
+include unchanged and changed cells.
 
-```r
-conversion <- transitions %>%
-  filter(!from_code %in% 21:24) %>%
-  group_by(geoid, start_year, end_year, from_code) %>%
-  summarise(starting_pixels = sum(pixels),
-            converted_pixels = sum(pixels[to_code %in% 21:24]),
-            .groups = "drop") %>%
-  mutate(starting_acres = starting_pixels * 900 / 4046.8564224,
-         converted_acres = converted_pixels * 900 / 4046.8564224,
-         percent_starting_class_converted =
-           100 * converted_acres / na_if(starting_acres, 0))
+```python
+developed_codes = [21, 22, 23, 24]
+nondeveloped = transitions.loc[
+    ~transitions["from_code"].isin(developed_codes)
+].copy()
+nondeveloped["converted_pixels"] = nondeveloped["pixels"].where(
+    nondeveloped["to_code"].isin(developed_codes), 0
+)
+
+# Include all destinations in starting area, but only development in conversion.
+conversion = nondeveloped.groupby(
+    ["geoid", "start_year", "end_year", "from_code"], as_index=False
+).agg(
+    starting_pixels=("pixels", "sum"),
+    converted_pixels=("converted_pixels", "sum"),
+)
+acres_per_pixel = 900 / 4046.8564224
+conversion["starting_acres"] = conversion["starting_pixels"] * acres_per_pixel
+conversion["converted_acres"] = conversion["converted_pixels"] * acres_per_pixel
+
+# A zero starting area has no defined conversion percentage; leave it missing.
+starting_area = conversion["starting_acres"].where(conversion["starting_acres"] > 0)
+conversion["percent_starting_class_converted"] = (
+    100 * conversion["converted_acres"] / starting_area
+)
 ```
 
 The 900 square-meter factor applies only after verifying the native 30 m grid.
