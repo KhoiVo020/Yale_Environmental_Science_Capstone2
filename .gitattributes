@@ -1,0 +1,3 @@
+* text=auto eol=lf
+# Preserve the downloaded NOAA file byte for byte, including its line endings.
+raw_data/co2_mm_mlo.csv -text
