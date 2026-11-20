@@ -93,4 +93,4 @@ Plots will use clear units, readable labels, and accessible colors. Before compa
 
 ## Assistance
 
-The project idea and research questions were provided by the author. OpenAI Codex assisted with locating sources, drafting code and documentation, and running checks.
+The project idea and research questions were provided by the author. OpenAI Codex assisted with drafting documentation, and running checks.
