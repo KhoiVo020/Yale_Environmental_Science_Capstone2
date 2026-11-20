@@ -1,9 +1,9 @@
-# Raw data
+# Project data
 
-`co2_mm_mlo.csv` is an unchanged snapshot of NOAA Global Monitoring Laboratory's [Mauna Loa monthly CO2 dataset](https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.csv), downloaded November 19, 2026. It contains 824 monthly records from March 1958 through October 2026, plus the original provider notes. The cleaning script reads this file without overwriting it.
+Source snapshots were obtained on November 19, 2026. Cleaning scripts read them without changing their values.
 
-SHA-256: `163cadae3baa6dec7d3ae066108b50d1018a78447b1b6fc2b6e3936465549d16`
+- [population/](population/source_notes.md): California rows from the Census county population file, plus the unchanged 2020 national county-code lookup. The extract preserves all 24 population groups so the R script can select the two counties' total counts.
+- [boundaries/](boundaries/README.md): the selected Orange and Riverside features from the full 2020 TIGER/Line county shapefile. This is an unsimplified subset converted to GeoJSON, not the untouched national archive.
+- [land_cover/](land_cover/README.md): download instructions for Annual NLCD Collection 1.2 land-cover layers for 2000, 2010, and 2020. These rasters are not included yet.
 
-Data credit: Xin Lan, NOAA/GML, and Ralph Keeling, Scripps Institution of Oceanography, following the [NOAA data page](https://gml.noaa.gov/ccgg/trends/data.html). That page also notes that quality checks can lead to revisions. Keeping this snapshot makes the analysis reproducible.
-
-This is an atmospheric monitoring record, not a global average. After the volcanic eruption, observations from December 2022 through July 4, 2023 came from Maunakea; July 2023 spans the return to Mauna Loa and has mixed site provenance. See [NOAA's record description](https://gml.noaa.gov/ccgg/trends/) for the measurement context.
+Population provenance is recorded in `population/source_notes.md`; boundary provenance is in `boundaries/source_metadata.json`. Refresh helpers are optional. Re-run cleaning and review the changes if a source is refreshed.

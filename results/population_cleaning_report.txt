@@ -1,0 +1,11 @@
+Decennial Census population preprocessing
+Rows in California source snapshot: 4176
+Exact duplicate selected observations removed: 0
+Clean county-year observations: 6
+Counties: Orange (06059), Riverside (06065)
+Years per county: 2000, 2010, 2020
+Missing population counts: 0
+Missing county identifiers: 0
+Conflicting county-year observations: 0
+Population counts were not estimated or imputed.
+Land-cover areas and conversions have not yet been calculated.

@@ -1,1 +1,3 @@
-pandas==2.2.3
+# Only needed for the optional TIGER boundary refresh helper.
+geopandas==1.0.1
+pyogrio==0.10.0

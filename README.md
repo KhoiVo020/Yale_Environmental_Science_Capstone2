@@ -1,77 +1,96 @@
-# Atmospheric CO2 in the Mauna Loa record, 1975-2025
+# Land-cover change and population growth in Orange and Riverside Counties
 
 Capstone project for the Yale Environmental Data Science Certificate.
 
 ## Project description
 
-Atmospheric carbon dioxide changes over both years and seasons. This project uses NOAA's monthly Mauna Loa record to examine the long-term change in CO2 while keeping the seasonal cycle visible. The current stage prepares the data and checks its completeness; plots and trend comparisons will follow.
+This project investigates how community expansion relates to changes in the surrounding landscapes of Orange and Riverside Counties, California. It combines land-cover maps with decennial population counts to describe development between 2000 and 2020. The analysis uses three observation years: **2000, 2010, and 2020**.
 
-## Research question
+The work builds on identifying variable types, filtering observations, calculating new variables, summarizing groups, and making readable visualizations. It is a descriptive study: an association between population growth and land conversion would not, by itself, establish a causal relationship.
 
-**How did atmospheric CO2 in the Mauna Loa record change from 1975 to 2025, and how does the recurring seasonal cycle differ from the long-term trend?**
+## Research questions
 
-The analysis will use the monthly mean and NOAA's existing deseasonalized series. It will describe changes in this record, rather than try to attribute them to individual emission sources.
+1. How much did developed land increase in each county between 2000 and 2020?
+2. Which land-cover categories, such as shrubland, grassland, or agricultural land, most frequently changed into developed land?
+3. How did the amount of developed land per resident change during this period?
 
-## Dataset
+Comparisons will cover 2000-2010, 2010-2020, and the full 2000-2020 period.
 
-The project uses the **Mauna Loa monthly mean CO2 dataset** from [NOAA's Global Monitoring Laboratory](https://gml.noaa.gov/ccgg/trends/data.html). Concentrations are dry-air mole fractions in parts per million (ppm). The original download contains 824 monthly records, from March 1958 through October 2026, along with day counts and variability/uncertainty fields.
+## Datasets
 
-The included [CSV snapshot](raw_data/co2_mm_mlo.csv) was downloaded on November 19, 2026. Its provider comments are preserved. [Source notes](raw_data/README.md) record the download link, attribution, and file checksum; the [data dictionary](docs/data_dictionary.md) explains the cleaned columns.
+| Dataset | Role in the project | Current status |
+| --- | --- | --- |
+| [USGS Annual NLCD, Collection 1.2](https://www.usgs.gov/data/annual-national-land-cover-database-nlcd-collection-1-products) | Categorical, 30 m land-cover rasters for exactly 2000, 2010, and 2020 | Selected; raster download and analysis are the next stage |
+| [U.S. Decennial Census county population](https://www.census.gov/library/visualizations/interactive/how-has-our-nations-population-changed.html) | Numeric population counts for the three census years | Downloaded and cleaned; six county-year observations included |
+| [2020 Census TIGER/Line county boundaries](https://www.census.gov/geographies/mapping-files/time-series/geo/tiger-line-file.2020.html) | Fixed county study areas; spatial joins using GEOID | Orange and Riverside boundary subset included |
 
-The study period is January 1975 through December 2025. NOAA began its measurements in May 1974, so 1975 is the first full NOAA calendar year. Ending in 2025 avoids comparing an incomplete 2026 with complete years. Earlier records remain in the original file but are outside this project's current scope. The course's synthetic stream-temperature examples are not used as research data.
+The Census source combines 2000 SF1, 2010 SF1, and 2020 DHC data. The repository contains a California extract with all original demographic groups, plus the official county-code lookup. The cleaning script selects only **Total Population**. GEOIDs are text identifiers: **06059** for Orange and **06065** for Riverside.
+
+Annual NLCD supports the exact requested years. The project will use all three layers from the same collection, rather than substitute legacy NLCD's 2001, 2011, or 2021 layers. Developed land means classes **21-24**, including developed open space; it is not the same as impervious surface area. Full source links, snapshot dates, and checksums are recorded in [raw_data/README.md](raw_data/README.md).
+
+## What is complete for Prompt 2
+
+The commented [population cleaning script](scripts/1_clean_population.R) runs on the included Census data and produces a six-row county-year table. It uses `filter()` to select the observations, `mutate()` to parse counts and calculate changes, and `group_by()` with `summarise()` to compare each county across time. It preserves leading zeros in GEOIDs, joins the official county identifiers, and checks missing values, duplicates, and year coverage.
+
+The population summaries are reproducible outputs. **Land-cover areas, conversion totals, and developed land per resident have not yet been calculated.** The next stage is described in the [land-cover analysis plan](docs/land_cover_analysis_plan.md).
+
+## Measuring land conversion
+
+The conversion table will report both **acres converted** and **the percentage of each starting land-cover category converted**:
+
+```text
+percent_starting_class_converted = 100 * converted_acres / starting_acres
+```
+
+For example, shrubland may contribute the most converted acres because it occupied more land initially. Dividing by starting shrubland area shows the share of that category lost to development. The denominator is not the total area of all new development. A category with zero starting area receives a missing percentage, not zero percent.
+
+Each table row will identify the county, start year, end year, starting category, starting acres, converted acres, and percentage converted. Matched raster cells are needed to identify transitions; differences between county-wide category totals cannot identify where new development came from. Gross conversion into development will be reported separately from the net change in developed area.
+
+Developed land per resident will be calculated as `developed_acres / population` for each county and year, using the same 2020 county boundaries and a checked, common raster footprint.
 
 ## Repository contents
 
 ```text
-Yale_Environmental_Science_Capstone2/
-|-- README.md
-|-- requirements.txt
-|-- raw_data/
-|   |-- README.md                  # Source and download details
-|   `-- co2_mm_mlo.csv             # Original NOAA file; never overwritten
-|-- clean_data/
-|   `-- co2_monthly_clean.csv      # One row per month, 1975-2025
-|-- scripts/
-|   `-- 1_clean_co2.py             # Commented preprocessing script
-|-- results/
-|   |-- cleaning_report.txt        # Counts and quality checks
-|   `-- yearly_coverage.csv        # Available months in each year
-|-- figures/                      # Reserved for later plots
-`-- docs/
-    |-- data_dictionary.md
-    `-- capstone_prompt_2_response.md
+raw_data/
+  population/     California Census extract, county codes, source notes
+  boundaries/     Two-county TIGER subset and provenance
+  land_cover/     Instructions for the three Annual NLCD layers
+clean_data/       Cleaned county population table
+scripts/          Download helpers and commented R preprocessing
+results/          Population growth tables and cleaning checks
+figures/          Reserved for project charts and maps
+docs/             Data dictionary, spatial analysis plan, discussion draft
 ```
 
-## Run the preprocessing
+## Run the population cleaning
 
-The script uses Python and pandas. It was tested with Python 3.13.1 and pandas 2.2.3. From the repository folder, run:
+Use R 4.1 or later and dplyr 1.1 or later. Install the two packages once in R:
 
-```bash
-python -m pip install -r requirements.txt
-python scripts/1_clean_co2.py
+```r
+install.packages(c("dplyr", "readr"))
 ```
 
-The raw data are included, so preprocessing needs no network connection after pandas is installed. Running the script again replaces only the generated CSVs and cleaning report. Paths are based on the script's location, so there is no personal directory to edit.
+Then, from the repository folder:
 
-## Cleaning decisions and checks
+```sh
+Rscript scripts/1_clean_population.R
+```
 
-- Rename the source columns to make their meanings and units clear, and check that their contents are numeric.
-- Check for duplicate months. Remove exact repeated rows, but stop if two records give different values for the same month. No duplicates were found in this snapshot.
-- Select 1975-2025, construct a monthly date index, and sort chronologically. The date uses day 1 for indexing; it is not a daily observation.
-- Convert negative missing-information markers to blanks. Record missing quality information in `quality_info_missing` before replacing the markers. Keep published zero uncertainty values as zero.
-- Retain both CO2 series and all months in the study period. No new interpolation, outlier removal, or seasonal adjustment is applied.
-- Check for missing calendar months and save yearly coverage counts before calculating any annual statistics.
+In RStudio, open [the project file](Yale_Environmental_Science_Capstone2.Rproj) and run `source("scripts/1_clean_population.R")`. The included source snapshots make cleaning possible without an API key or network connection after package installation. Rerunning replaces the generated population tables and report, while leaving the source files unchanged.
 
-The [cleaning report](results/cleaning_report.txt) records **612 months across 51 complete years**, with no missing CO2 means. December 1975 and April 1984 have missing quality metadata. Their CO2 means are retained and flagged so they can be checked in later analysis.
+Validation used R 4.6.0 through WebR, dplyr 1.2.1, and readr 2.2.0. Checks covered the six source counts, missing observations, duplicate handling, and consistency after shuffling input rows.
 
-## Limitations and next steps
+Optional source-refresh helpers use Python. `python scripts/0_download_population.py` needs only the standard library. To recreate the boundary subset, first install `requirements.txt`, then run `python scripts/0_prepare_boundaries.py`. These helpers need internet access. The national TIGER archive is excluded from Git; the small two-county subset is included.
 
-NOAA has already processed these monthly means and interpolated some missing months. The quality flag records missing metadata; it is not a complete classification of interpolated values. A published zero uncertainty should not be interpreted as perfect certainty.
+## Expected outputs and next steps
 
-The record also includes temporary measurements at Maunakea from December 2022 through July 4, 2023. This is a background atmospheric record, not a global surface mean. NOAA may revise published values, so the saved snapshot makes this stage reproducible. These details are described in [NOAA's documentation](https://gml.noaa.gov/ccgg/trends/).
+- Bar charts comparing developed acres by county and year.
+- Maps showing mapped conversions into developed land.
+- Conversion tables showing both acres and the share of each starting category converted.
+- A line chart of developed acres per resident in 2000, 2010, and 2020.
 
-Next, plot both series, summarize complete calendar years, and examine the monthly seasonal pattern. Compare the trend with and without the two flagged months and discuss the temporary monitoring-site change before drawing conclusions. The files in `results/` currently report preprocessing checks, not final research findings.
+Plots will use clear units, readable labels, and accessible colors. Before comparing rasters, check classification codes, grid alignment, coordinate systems, and missing coverage. Use a fixed 2020 boundary for land-cover summaries and check whether earlier Census geographies are compatible. Annual land classifications and Census Day population counts are not exactly simultaneous. Classification uncertainty, mixed pixels, and county-edge choices will be discussed when interpreting mapped changes.
 
 ## Assistance
 
-OpenAI Codex assisted with selecting this working topic, drafting the code and documentation, and running validation checks.
+The project idea and research questions were provided by the author. OpenAI Codex assisted with locating sources, drafting code and documentation, and running checks.

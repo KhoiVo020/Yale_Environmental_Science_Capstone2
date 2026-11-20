@@ -1,0 +1,9 @@
+{
+  "source_url": "https://www2.census.gov/geo/tiger/TIGER2020/COUNTY/tl_2020_us_county.zip",
+  "prepared": "2026-11-19",
+  "archive_sha256": "a490d33145b8cd308b0b53113d4bb31575b84a2b4cf6ec28fa5855be37559d8d",
+  "subset_sha256": "51b2d39006f2840c508f755b1c64a00e169e2bfb242bd2ce4a44f49dd4f8d2ce",
+  "selection": "STATEFP = '06' AND COUNTYFP IN ('059', '065')",
+  "processing": "Selected two features; retained attributes; transformed NAD83 to WGS84; no simplification.",
+  "note": "The full ZIP is a local cache excluded from Git; prepared is the subset creation date."
+}

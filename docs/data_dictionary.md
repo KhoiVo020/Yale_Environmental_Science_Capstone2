@@ -1,20 +1,40 @@
-# Clean data dictionary
+# Data dictionary
 
-The cleaned table has one row per month for January 1975 through December 2025: 612 rows. CO2 concentrations are dry-air mole fractions in parts per million (ppm).
+## Population outputs
 
-| Clean column | Raw column | Meaning |
-| --- | --- | --- |
-| `date` | Derived | First-of-month label in `YYYY-MM-DD` format; an index, not a sampling date. |
-| `year` | `year` | Calendar year. |
-| `month` | `month` | Calendar month, 1–12. |
-| `decimal_date` | `decimal date` | NOAA's decimal-year time coordinate, retained as supplied. |
-| `co2_ppm` | `average` | Monthly mean CO2, centered on midmonth by NOAA. |
-| `deseasonalized_co2_ppm` | `deseasonalized` | Monthly CO2 after NOAA's seasonal adjustment. |
-| `days_measured` | `ndays` | Number of contributing daily means. |
-| `daily_sd_ppm` | `sdev` | Standard deviation of daily means (ppm). |
-| `monthly_uncertainty_ppm` | `unc` | NOAA's uncertainty of the monthly mean (ppm). |
-| `quality_info_missing` | Derived | Boolean: any negative or blank `ndays`, `sdev`, or `unc` before cleaning. |
+`clean_data/county_population.csv` has one row per county and census year.
 
-Negative markers in the five measurement/count columns become blank missing values. The script adds no imputed values, removes no outliers, and does not repeat NOAA's seasonal adjustment. Definitions follow the [NOAA text-file header](https://gml.noaa.gov/webdata/ccgg/trends/co2/co2_mm_mlo.txt) and [measurement description](https://gml.noaa.gov/ccgg/trends/).
+| Column | Type and meaning |
+| --- | --- |
+| `geoid` | Text county identifier; `06059` Orange or `06065` Riverside. Keep leading zeros. |
+| `county` | County name; categorical. |
+| `year` | Integer census year: 2000, 2010, or 2020. |
+| `population` | Integer total residents counted in that census. |
 
-The quality flag identifies December 1975 and April 1984 in this analysis period. It signals unavailable quality information, not a definitive interpolation classification. Their supplied uncertainty values of zero are retained as zero; neither zero nor the flag establishes error-free measurement. NOAA has already interpolated some values in the source record.
+`results/population_change_by_decade.csv` contains `geoid`, `county`,
+`start_year`, `end_year`, `starting_population`, `ending_population`,
+`population_change` (ending minus starting), and `population_change_pct`
+(`100 * population_change / starting_population`).
+
+`results/population_change_2000_2020.csv` contains `geoid`, `county`,
+`census_years` (number of distinct observations), `population_2000`,
+`population_2020`, `population_change`, and `population_change_pct` using
+2000 as the baseline. See [population source notes](../raw_data/population/source_notes.md).
+
+## Planned land-cover outputs
+
+These tables have **not been calculated**. Land-cover codes are categories,
+not numeric quantities to average.
+
+| Conversion-table column | Meaning |
+| --- | --- |
+| `geoid`, `county`, `start_year`, `end_year` | County and comparison period. |
+| `starting_code`, `starting_land_cover` | Original nondeveloped code and label. |
+| `starting_acres` | Original class area within the common valid coverage. |
+| `converted_acres` | Area of that class ending in developed codes 21-24. |
+| `percent_starting_class_converted` | `100 * converted_acres / starting_acres`; `NA` if starting area is zero. |
+
+A county-year table will join `developed_acres` to `population` by `geoid`
+and `year`; `developed_acres_per_resident = developed_acres / population`.
+Optional `developed_m2_per_resident` multiplies acres by 4046.8564224 before
+division. Missing coverage is excluded and reported, never recorded as zero.
